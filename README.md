@@ -5,7 +5,7 @@
 
 ## Build
 ```sh
-rustup target add aarch64-linux-android && cargo install cargo-ndk
+rustup target add aarch64-linux-android armv7-linux-androideabi && cargo install cargo-ndk
 export ANDROID_HOME=$HOME/Library/Android/sdk
 export ANDROID_NDK_HOME=$(ls -d $ANDROID_HOME/ndk/* | tail -1)
 ./build.sh
