@@ -10,17 +10,45 @@ use sha2::{Digest, Sha256};
 const YOUTUBE: &[&str] = &["com.google.android.youtube", "app.revanced.android.youtube"];
 const OWN_APP: &str = "com.gamecontrol.guard";
 
-/// Stores, game hubs and installers on Redmi/MIUI/HyperOS and stock Android.
-const DEFAULT_BLOCKED: &[&str] = &[
+const PLAY_STORE: &[&str] = &["com.android.vending"];
+
+/// Other app stores and game hubs (Redmi/MIUI/HyperOS first).
+const APP_STORES: &[&str] = &[
     "com.xiaomi.mipicks",
     "com.xiaomi.market",
     "com.xiaomi.glgm",
     "com.xiaomi.gamecenter",
     "com.xiaomi.gamecenter.sdk.service",
-    "com.android.vending",
+    "com.sec.android.app.samsungapps",
+    "com.amazon.venezia",
+    "cm.aptoide.pt",
+    "com.apkpure.aegon",
+];
+
+/// Screens that install downloaded APKs.
+const INSTALLERS: &[&str] = &[
     "com.miui.packageinstaller",
     "com.google.android.packageinstaller",
     "com.android.packageinstaller",
+];
+
+/// Known browsers. The shell also reports any app that registers as a browser.
+const BROWSERS: &[&str] = &[
+    "com.android.chrome",
+    "com.mi.globalbrowser",
+    "com.miui.browser",
+    "com.android.browser",
+    "org.mozilla.firefox",
+    "org.mozilla.firefox_beta",
+    "com.opera.browser",
+    "com.opera.mini.native",
+    "com.microsoft.emmx",
+    "com.brave.browser",
+    "com.duckduckgo.mobile.android",
+    "com.sec.android.app.sbrowser",
+    "com.UCMobile.intl",
+    "com.kiwibrowser.browser",
+    "com.vivaldi.browser",
 ];
 
 /// Still usable at bedtime (calls, alarms, notification shade).
@@ -74,10 +102,15 @@ impl Bedtime {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(default)]
 pub struct Policy {
+    /// Extra packages the parent added by hand.
     pub blocked_packages: Vec<String>,
     /// Always usable, even at bedtime or if flagged as a game.
     pub allowed_packages: Vec<String>,
     pub block_games: bool,
+    pub block_browsers: bool,
+    pub block_play_store: bool,
+    pub block_app_stores: bool,
+    pub block_installers: bool,
     pub youtube_redirect: bool,
     /// Stop the child from reaching this app's accessibility / admin / app-info screens.
     pub protect_settings: bool,
@@ -89,9 +122,13 @@ pub struct Policy {
 impl Default for Policy {
     fn default() -> Self {
         Policy {
-            blocked_packages: DEFAULT_BLOCKED.iter().map(|s| s.to_string()).collect(),
+            blocked_packages: vec![],
             allowed_packages: vec![],
             block_games: true,
+            block_browsers: true,
+            block_play_store: true,
+            block_app_stores: true,
+            block_installers: true,
             youtube_redirect: true,
             protect_settings: true,
             bedtime: Bedtime::default(),
@@ -108,6 +145,10 @@ fn hash_pin(salt: &str, pin: &str) -> String {
 
 fn valid_pin(pin: &str) -> bool {
     (4..=12).contains(&pin.len()) && pin.bytes().all(|b| b.is_ascii_digit())
+}
+
+fn is_builtin(pkg: &str) -> bool {
+    [PLAY_STORE, APP_STORES, INSTALLERS, BROWSERS].iter().any(|g| g.contains(&pkg))
 }
 
 fn clean_list(list: &[String]) -> Vec<String> {
@@ -142,7 +183,10 @@ impl Policy {
     }
 
     pub fn normalize(&mut self) {
-        self.blocked_packages = clean_list(&self.blocked_packages);
+        self.blocked_packages = clean_list(&self.blocked_packages)
+            .into_iter()
+            .filter(|p| !is_builtin(p))
+            .collect();
         self.allowed_packages = clean_list(&self.allowed_packages);
         self.bedtime.start %= 24 * 60;
         self.bedtime.end %= 24 * 60;
@@ -156,6 +200,8 @@ pub struct Ctx {
     pub package: String,
     pub is_game: bool,
     pub is_launcher: bool,
+    /// The app registers as a web browser.
+    pub is_browser: bool,
     pub minute_of_day: u32,
     /// Parent has entered the PIN recently.
     pub unlocked: bool,
@@ -184,7 +230,14 @@ pub fn decide(p: &Policy, c: &Ctx) -> Action {
     if p.youtube_redirect && YOUTUBE.contains(&pkg) {
         return Action::RedirectYoutubeKids;
     }
-    if (p.block_games && c.is_game) || p.blocked_packages.iter().any(|b| b == pkg) {
+    let browser = p.block_browsers && ((c.is_browser && !c.is_launcher) || BROWSERS.contains(&pkg));
+    let blocked = (p.block_games && c.is_game)
+        || browser
+        || (p.block_play_store && PLAY_STORE.contains(&pkg))
+        || (p.block_app_stores && APP_STORES.contains(&pkg))
+        || (p.block_installers && INSTALLERS.contains(&pkg))
+        || p.blocked_packages.iter().any(|b| b == pkg);
+    if blocked {
         return Action::Block;
     }
     Action::Allow
@@ -296,6 +349,46 @@ mod tests {
         for pkg in ["com.xiaomi.mipicks", "com.android.vending", "com.miui.packageinstaller"] {
             assert_eq!(decide(&p, &ctx(pkg)), Action::Block, "{pkg}");
         }
+    }
+
+    #[test]
+    fn each_switch_controls_its_group() {
+        let mut p = Policy::default();
+        let chrome = ctx("com.android.chrome");
+        let unknown_browser = Ctx { is_browser: true, ..ctx("org.some.browser") };
+        assert_eq!(decide(&p, &chrome), Action::Block);
+        assert_eq!(decide(&p, &unknown_browser), Action::Block);
+        p.block_browsers = false;
+        assert_eq!(decide(&p, &chrome), Action::Allow);
+        assert_eq!(decide(&p, &unknown_browser), Action::Allow);
+
+        assert_eq!(decide(&p, &ctx("com.android.vending")), Action::Block);
+        p.block_play_store = false;
+        assert_eq!(decide(&p, &ctx("com.android.vending")), Action::Allow);
+
+        assert_eq!(decide(&p, &ctx("com.xiaomi.mipicks")), Action::Block);
+        p.block_app_stores = false;
+        assert_eq!(decide(&p, &ctx("com.xiaomi.mipicks")), Action::Allow);
+
+        assert_eq!(decide(&p, &ctx("com.miui.packageinstaller")), Action::Block);
+        p.block_installers = false;
+        assert_eq!(decide(&p, &ctx("com.miui.packageinstaller")), Action::Allow);
+    }
+
+    #[test]
+    fn launcher_is_never_a_browser() {
+        let p = Policy::default();
+        let c = Ctx { is_browser: true, is_launcher: true, ..ctx("com.miui.home") };
+        assert_eq!(decide(&p, &c), Action::Allow);
+    }
+
+    #[test]
+    fn custom_list_still_works_and_builtins_are_stripped() {
+        let mut p = Policy::default();
+        p.blocked_packages = vec!["com.vendor.game".into(), "com.android.vending".into()];
+        p.normalize();
+        assert_eq!(p.blocked_packages, vec!["com.vendor.game".to_string()]);
+        assert_eq!(decide(&p, &ctx("com.vendor.game")), Action::Block);
     }
 
     #[test]

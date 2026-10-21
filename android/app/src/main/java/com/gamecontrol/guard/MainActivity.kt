@@ -3,7 +3,9 @@ package com.gamecontrol.guard
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.text.InputFilter
 import android.text.InputType
+import android.view.Gravity
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.Toast
@@ -22,27 +24,43 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         if (Store.isUnlocked(this)) return openSettings()
 
+        lightSystemBars()
         val hasPin = JSONObject(Store.policy(this)).optString("pin_hash").isNotEmpty()
+        val pin = pinField(getString(R.string.pin_hint))
+        val confirm = pinField(getString(R.string.confirm_pin_hint))
+
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(24), dp(48), dp(24), dp(24))
+            gravity = Gravity.CENTER
+            setBackgroundColor(Pal.BG)
+            setPadding(dp(32), dp(24), dp(32), dp(24))
+
+            addView(text("🛡️", 34f).apply {
+                gravity = Gravity.CENTER
+                background = rounded(Pal.SURFACE, 36)
+                layoutParams = LinearLayout.LayoutParams(dp(72), dp(72))
+            })
+            addView(text(getString(if (hasPin) R.string.enter_pin else R.string.create_pin), 22f, Pal.TEXT, true)
+                .apply { setPadding(0, dp(20), 0, dp(4)) })
+            addView(caption(getString(if (hasPin) R.string.enter_pin_hint else R.string.create_pin_hint))
+                .apply { gravity = Gravity.CENTER })
+            addView(pin)
+            if (!hasPin) addView(confirm)
+            addView(primaryButton(getString(if (hasPin) R.string.unlock else R.string.set_pin)) {
+                if (hasPin) tryUnlock(pin.text.toString()) else createPin(pin.text.toString(), confirm.text.toString())
+            }.apply { (layoutParams as LinearLayout.LayoutParams).topMargin = dp(20) })
         }
-        root.addView(label(getString(R.string.app_name), 26f, bold = true))
-        root.addView(label(getString(if (hasPin) R.string.enter_pin else R.string.create_pin)))
-
-        val pin = pinField(getString(R.string.pin_hint)).also { root.addView(it) }
-        val confirm = pinField(getString(R.string.confirm_pin_hint))
-        if (!hasPin) root.addView(confirm)
-
-        root.addView(button(getString(if (hasPin) R.string.unlock else R.string.set_pin)) {
-            if (hasPin) tryUnlock(pin.text.toString()) else createPin(pin.text.toString(), confirm.text.toString())
-        })
         setContentView(root)
     }
 
-    private fun pinField(hint: String) = EditText(this).apply {
-        this.hint = hint
+    private fun pinField(hint: String): EditText = editField(hint).apply {
+        background = rounded(Pal.SURFACE, 12)
         inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
+        filters = arrayOf(InputFilter.LengthFilter(12))
+        gravity = Gravity.CENTER
+        textSize = 22f
+        letterSpacing = 0.3f
+        (layoutParams as LinearLayout.LayoutParams).topMargin = dp(16)
     }
 
     private fun createPin(pin: String, confirm: String) {

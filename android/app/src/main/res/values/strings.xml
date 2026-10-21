@@ -1,11 +1,13 @@
 <resources>
     <string name="app_name">Game Control</string>
-    <string name="service_description">Blocks game stores and installers, opens YouTube Kids instead of YouTube, and protects its own settings.</string>
+    <string name="service_description">Blocks game stores, browsers and installers, opens YouTube Kids instead of YouTube, and protects its own settings.</string>
     <string name="blocked">Blocked by parent</string>
     <string name="kids_missing">YouTube Kids is not installed. Ask a parent to install it.</string>
 
-    <string name="create_pin">Create a parent PIN (4-12 digits)</string>
-    <string name="enter_pin">Enter parent PIN</string>
+    <string name="create_pin">Create a parent PIN</string>
+    <string name="create_pin_hint">Choose 4-12 digits. You need it to change anything.</string>
+    <string name="enter_pin">Parent PIN</string>
+    <string name="enter_pin_hint">Enter your PIN to open settings</string>
     <string name="pin_hint">PIN</string>
     <string name="confirm_pin_hint">Confirm PIN</string>
     <string name="set_pin">Set PIN</string>
@@ -15,25 +17,61 @@
     <string name="wrong_pin">Wrong PIN</string>
     <string name="too_many_tries">Too many tries. Wait a minute.</string>
 
-    <string name="status">Accessibility service %1$s   Device admin %2$s</string>
-    <string name="open_accessibility">1. Turn on accessibility service</string>
-    <string name="enable_admin">2. Turn on uninstall protection</string>
-    <string name="open_autostart">3. Allow autostart (Redmi)</string>
+    <string name="protection_active">● Protection is on</string>
+    <string name="setup_needed">● Setup needed</string>
+    <string name="status_on">On</string>
+    <string name="status_off">Turn on</string>
+
+    <string name="section_setup">Setup</string>
+    <string name="section_block">Block</string>
+    <string name="section_youtube">YouTube</string>
+    <string name="section_games">Games on this phone</string>
+    <string name="section_bedtime">Bedtime</string>
+    <string name="section_advanced">Advanced</string>
+    <string name="section_protection">Protection</string>
+
+    <string name="step_accessibility">Protection service</string>
+    <string name="step_accessibility_sub">Watches for blocked apps</string>
+    <string name="step_admin">Uninstall protection</string>
+    <string name="step_admin_sub">Child cannot remove this app</string>
+    <string name="step_autostart">Allow autostart (Redmi)</string>
     <string name="admin_why">Stops the app from being uninstalled without a parent.</string>
 
-    <string name="rules">Rules</string>
-    <string name="block_games">Block all games</string>
-    <string name="youtube_redirect">Open YouTube Kids instead of YouTube</string>
-    <string name="protect_settings">Hide this app\'s settings from the child</string>
-    <string name="bedtime">Bedtime</string>
-    <string name="bedtime_on">Block everything except calls and alarms</string>
-    <string name="bedtime_start">Starts at %1$s</string>
-    <string name="bedtime_end">Ends at %1$s</string>
-    <string name="blocked_list">Blocked apps (one package per line)</string>
-    <string name="allowed_list">Always allowed apps (one package per line)</string>
+    <string name="block_games">Games</string>
+    <string name="block_games_sub">Any app marked as a game</string>
+    <string name="block_browsers">Browsers</string>
+    <string name="block_browsers_sub">Chrome, Mi Browser, Firefox and others</string>
+    <string name="block_play_store">Play Store</string>
+    <string name="block_play_store_sub">No installs from Google Play</string>
+    <string name="block_app_stores">Other app stores</string>
+    <string name="block_app_stores_sub">GetApps, Xiaomi Games, Galaxy Store</string>
+    <string name="block_installers">APK installer</string>
+    <string name="block_installers_sub">No installing downloaded files</string>
+    <string name="youtube_redirect">YouTube Kids only</string>
+    <string name="youtube_redirect_sub">Opening YouTube opens YouTube Kids</string>
+
+    <string name="uninstall_games">Uninstall games</string>
+    <string name="games_screen_title">Games</string>
+    <string name="games_info">Android asks you to confirm each uninstall. Tap OK on every one.</string>
+    <string name="games_none">No games found</string>
+    <string name="select_all">Select all</string>
+    <string name="uninstall_selected">Uninstall (%1$d)</string>
+
+    <string name="bedtime_on">Bedtime lock</string>
+    <string name="bedtime_on_sub">Only calls and alarms work</string>
+    <string name="bedtime_start">Starts</string>
+    <string name="bedtime_end">Ends</string>
+
+    <string name="custom_lists">Custom block and allow lists</string>
+    <string name="blocked_list">Always blocked</string>
+    <string name="allowed_list">Always allowed</string>
+    <string name="package_hint">One package name per line</string>
+
+    <string name="protect_settings">Hide these settings</string>
+    <string name="protect_settings_sub">Child cannot open this app\'s system settings</string>
+    <string name="change_pin">Change PIN</string>
     <string name="save">Save</string>
     <string name="saved">Saved</string>
     <string name="save_failed">Could not save</string>
-    <string name="change_pin">Change PIN</string>
-    <string name="lock_now">Lock now</string>
+    <string name="lock_now">Lock parent mode</string>
 </resources>

@@ -4,6 +4,7 @@ import android.accessibilityservice.AccessibilityService
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.view.accessibility.AccessibilityEvent
 import android.widget.Toast
 import org.json.JSONObject
@@ -29,6 +30,7 @@ class GuardService : AccessibilityService() {
             .put("package", pkg)
             .put("is_game", isGame(pkg))
             .put("is_launcher", pkg == launcherPackage())
+            .put("is_browser", pkg in browserPackages())
             .put("minute_of_day", minuteOfDay())
             .put("unlocked", Store.isUnlocked(this))
             .put("mentions_us", pkg in sensitive && screenMentionsUs())
@@ -60,6 +62,22 @@ class GuardService : AccessibilityService() {
         packageManager.getApplicationInfo(pkg, 0).category == ApplicationInfo.CATEGORY_GAME
     } catch (_: Exception) {
         false
+    }
+
+    private var browsers: Set<String> = emptySet()
+    private var browsersAt = 0L
+
+    /** Apps that handle a bare http:// link are browsers; app-links always name a host. Cached for a minute. */
+    private fun browserPackages(): Set<String> {
+        val now = System.currentTimeMillis()
+        if (now - browsersAt > 60_000) {
+            val probe = Intent(Intent.ACTION_VIEW, Uri.parse("http://")).addCategory(Intent.CATEGORY_BROWSABLE)
+            browsers = packageManager.queryIntentActivities(probe, PackageManager.MATCH_ALL)
+                .map { it.activityInfo.packageName }
+                .toSet()
+            browsersAt = now
+        }
+        return browsers
     }
 
     private fun launcherPackage(): String? {
