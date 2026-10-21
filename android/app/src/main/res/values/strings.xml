@@ -1,0 +1,39 @@
+<resources>
+    <string name="app_name">Game Control</string>
+    <string name="service_description">Blocks game stores and installers, opens YouTube Kids instead of YouTube, and protects its own settings.</string>
+    <string name="blocked">Blocked by parent</string>
+    <string name="kids_missing">YouTube Kids is not installed. Ask a parent to install it.</string>
+
+    <string name="create_pin">Create a parent PIN (4-12 digits)</string>
+    <string name="enter_pin">Enter parent PIN</string>
+    <string name="pin_hint">PIN</string>
+    <string name="confirm_pin_hint">Confirm PIN</string>
+    <string name="set_pin">Set PIN</string>
+    <string name="unlock">Unlock</string>
+    <string name="pin_mismatch">PINs do not match</string>
+    <string name="pin_invalid">PIN must be 4-12 digits</string>
+    <string name="wrong_pin">Wrong PIN</string>
+    <string name="too_many_tries">Too many tries. Wait a minute.</string>
+
+    <string name="status">Accessibility service %1$s   Device admin %2$s</string>
+    <string name="open_accessibility">1. Turn on accessibility service</string>
+    <string name="enable_admin">2. Turn on uninstall protection</string>
+    <string name="open_autostart">3. Allow autostart (Redmi)</string>
+    <string name="admin_why">Stops the app from being uninstalled without a parent.</string>
+
+    <string name="rules">Rules</string>
+    <string name="block_games">Block all games</string>
+    <string name="youtube_redirect">Open YouTube Kids instead of YouTube</string>
+    <string name="protect_settings">Hide this app\'s settings from the child</string>
+    <string name="bedtime">Bedtime</string>
+    <string name="bedtime_on">Block everything except calls and alarms</string>
+    <string name="bedtime_start">Starts at %1$s</string>
+    <string name="bedtime_end">Ends at %1$s</string>
+    <string name="blocked_list">Blocked apps (one package per line)</string>
+    <string name="allowed_list">Always allowed apps (one package per line)</string>
+    <string name="save">Save</string>
+    <string name="saved">Saved</string>
+    <string name="save_failed">Could not save</string>
+    <string name="change_pin">Change PIN</string>
+    <string name="lock_now">Lock now</string>
+</resources>
